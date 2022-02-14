@@ -50,10 +50,11 @@ function App() {
 						total={total}
 						setTotal={setTotal}
 						setLockedSliders={setLockedSliders}
+						setLastAdjusted={setLastAdjusted}
 					/>
 					<h1>Nozie Sliders</h1>
 					<h2> {total}</h2>
-					<p>{error}</p>
+
 					<SliderButton
 						text="Add Button"
 						setError={setError}
@@ -64,6 +65,7 @@ function App() {
 						total={total}
 						setTotal={setTotal}
 						setLockedSliders={setLockedSliders}
+						setLastAdjusted={setLastAdjusted}
 					/>
 				</div>
 				<SliderContainer>
@@ -82,9 +84,11 @@ function App() {
 							setLockedSliders={setLockedSliders}
 							isLocked={lockedSliders[i]}
 							isLockedArray={lockedSliders}
+							setError={setError}
 						/>
 					))}
 				</SliderContainer>
+				<p>{error}</p>
 			</header>
 		</div>
 	);

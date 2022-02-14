@@ -9,6 +9,7 @@ const SliderButton = ({
 	sliderValue,
 	setTotal,
 	setLockedSliders,
+	setLastAdjusted,
 }) => {
 	const setNewSliderValue = () => {
 		const valueMap = {
@@ -51,6 +52,8 @@ const SliderButton = ({
 			tempValue[0] = tempValue[0] - setNewSliderValue();
 			const newState = [...tempValue, setNewSliderValue()];
 			setSliderCount(newState);
+			setLockedSliders((state) => [...state, false]);
+			setLastAdjusted(1);
 			return;
 		}
 
@@ -59,18 +62,14 @@ const SliderButton = ({
 		);
 		setNewSliderValue();
 		setLockedSliders((state) => [...state, false]);
+		setLastAdjusted(1);
 	};
 
 	const onRemoveSlider = () => {
-		if (sliderCount <= 2) {
-		}
 		let sliderToRemove = sliderValue[sliderValue.length - 1];
-		setSliderCount((state) =>
-			isIncrement
-				? [...state, setNewSliderValue()]
-				: [...state.slice(0, state.length - 1)]
-		);
+		setSliderCount((state) => [...state.slice(0, state.length - 1)]);
 		setTotal((state) => state - sliderToRemove);
+		setLastAdjusted(1);
 	};
 	return (
 		<button

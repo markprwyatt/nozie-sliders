@@ -29,6 +29,7 @@ function NozieSlider({
 	isLocked,
 	isLockedArray,
 	setLockedSliders,
+	setError,
 }) {
 	const SliderMap = {
 		0: 100,
@@ -60,10 +61,28 @@ function NozieSlider({
 		// }
 	}, [sliderCount]);
 
+	const checkOthersZeroOrLocked = (state) => {
+		let newState = [...state];
+
+		newState.splice(index, 1);
+		if (index != 0) newState.shift();
+		const tempLocked = [...isLockedArray];
+		tempLocked.splice(index, 1);
+		if (index != 0) tempLocked.shift();
+
+		return newState.every((slider, i) => slider === 0 || tempLocked[i]);
+	};
+
+	const checkOthersAllLocked = (state) => {
+		const tempLocked = [...isLockedArray];
+		tempLocked.splice(index, 1);
+		if (index != 0) tempLocked.shift();
+
+		return tempLocked.every((slider, i) => slider);
+	};
+
 	const handleOnChange = (e) => {
 		// const totalCurr = slidersArray.reduce((acc, curr, i) => acc + curr, 0);
-
-		const currentSliderValue = sliderValue;
 
 		if (isLocked) {
 			return;
@@ -97,7 +116,12 @@ function NozieSlider({
 
 		setSliderValue((state) => {
 			let newState = [...state];
+
 			let newDiff = val - newState[index];
+
+			const checkZeroOrLocked = checkOthersZeroOrLocked(newState);
+			const checkOthersLocked = checkOthersAllLocked();
+
 			let applyValueToFirstOnly = false;
 			const totalToDistribute = Math.floor(newDiff / newState.length);
 			const totalToAdjustLast =
@@ -106,59 +130,87 @@ function NozieSlider({
 				applyValueToFirstOnly = true;
 			}
 
-			console.log("VAL", val);
-			newState[index] = parseInt(val);
-			if (newState.length > 1) {
-				let skipAdjust = false;
-				console.log("LAST ADJUSTED", newState[lastAdjusted]);
-
-				// skip a slider
-				if (newState[lastAdjusted] <= 0 || isLocked) {
-					skipAdjust = true;
-					setLastAdjusted((prev) =>
-						lastAdjusted === newState.length - 1 ? 1 : prev + 1
-					);
-				}
-				if (newState[lastAdjusted] >= 0 && !isLockedArray[lastAdjusted]) {
-					if (newDiff < 0) {
-						newState[lastAdjusted] = newState[lastAdjusted] + Math.abs(newDiff);
-					} else {
-						newState[lastAdjusted] = newState[lastAdjusted] - newDiff;
-					}
-
-					if (newState[lastAdjusted] < 0) {
-						newState[lastAdjusted] = 0;
-					}
-				}
-				if (!skipAdjust) {
-					setLastAdjusted((prev) =>
-						lastAdjusted === newState.length - 1 ? 1 : prev + 1
-					);
-				}
+			if (checkZeroOrLocked && newDiff > 0) {
+				setError("All others are zero or locked");
+				setTimeout(() => {
+					setError("");
+				}, 3000);
+				return newState;
 			}
 
-			// newState = newState.map((slider, i) => {
-			// 	if (i === 0) return slider;
-			// 	if (i === newState.length - 1) {
-			// 		return newDiff > 0
-			// 			? parseInt(slider - totalToAdjustLast)
-			// 			: parseInt(slider + totalToAdjustLast);
-			// 	} else {
-			// 		if (applyValueToFirstOnly) {
-			// 			if (i === 1) {
-			// 				return newDiff > 0
-			// 					? parseInt(slider + totalToAdjustLast)
-			// 					: parseInt(slider - totalToAdjustLast);
-			// 			} else {
-			// 				return slider;
-			// 			}
-			// 		} else {
-			// 			return newDiff > 0
-			// 				? parseInt(slider + totalToDistribute)
-			// 				: parseInt(slider - totalToDistribute);
-			// 		}
-			// 	}
-			// });
+			if (checkOthersLocked) {
+				setError("All others are zero or locked");
+				setTimeout(() => {
+					setError("");
+				}, 3000);
+				return newState;
+			}
+
+			console.log("VAL", val);
+
+			newState[index] = parseInt(val);
+
+			// add to other sliders
+			if (newState.length > 1) {
+				let skipAdjust = 0;
+
+				// skip a slider
+				if (
+					(newState[lastAdjusted] <= 0 && newDiff < 0) ||
+					isLockedArray[lastAdjusted] ||
+					lastAdjusted === index
+				) {
+					console.log(
+						"SKIPPING",
+						(newState[lastAdjusted] <= 0 && newDiff < 0) ||
+							isLockedArray[lastAdjusted] ||
+							lastAdjusted === index
+					);
+					skipAdjust = 1;
+					// setLastAdjusted((prev) => {
+					// 	return prev === newState.length - 1 ? 1 : prev + 1;
+					// });
+				}
+
+				let updatedLastAdjusted = lastAdjusted + skipAdjust;
+				if (
+					newState[updatedLastAdjusted] >= 0 &&
+					!isLockedArray[updatedLastAdjusted]
+				) {
+					console.log("NEW DIFF", newDiff, updatedLastAdjusted);
+					if (newDiff < -1) {
+						console.log("Adjustment", newDiff, totalToDistribute);
+						for (let j = 1; j < newState.length; j++) {
+							console.log("Before: ", newState[j]);
+							if (j === index) continue;
+							newState[j] = newState[j] + Math.abs(totalToDistribute);
+							console.log("After: ", newState[j]);
+						}
+					} else if (newDiff > 1) {
+						console.log("Adjustment", newDiff, totalToDistribute);
+						for (let j = 1; j < newState.length; j++) {
+							console.log("Before: ", newState[j]);
+							if (j === index) continue;
+							newState[j] = newState[j] - totalToDistribute;
+							console.log("After: ", newState[j]);
+						}
+					} else if (newDiff === -1) {
+						newState[updatedLastAdjusted] =
+							newState[updatedLastAdjusted] + Math.abs(newDiff);
+					} else {
+						newState[updatedLastAdjusted] =
+							newState[updatedLastAdjusted] - newDiff;
+					}
+
+					if (newState[updatedLastAdjusted] < 0) {
+						newState[updatedLastAdjusted] = 0;
+					}
+				}
+
+				setLastAdjusted((prev) => {
+					return prev === newState.length - 1 ? 1 : prev + 1;
+				});
+			}
 
 			return newState;
 		});
