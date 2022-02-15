@@ -22,6 +22,7 @@ function App() {
 	const [lastAdjusted, setLastAdjusted] = useState(1);
 	const [sliderValue, setSliderValue] = useState([100]);
 	const [lockedSliders, setLockedSliders] = useState([true]);
+	const [hideNumbers, setHideNumbers] = useState(false);
 
 	useEffect(() => {
 		const newTotal = sliderValue.reduce((acc, curr, i) => acc + curr, 0);
@@ -53,7 +54,7 @@ function App() {
 						setLastAdjusted={setLastAdjusted}
 					/>
 					<h1>Nozie Sliders</h1>
-					<h2> {total}</h2>
+					{!hideNumbers && <h2> {total}</h2>}
 
 					<SliderButton
 						text="Add Button"
@@ -85,10 +86,14 @@ function App() {
 							isLocked={lockedSliders[i]}
 							isLockedArray={lockedSliders}
 							setError={setError}
+							hideNumbers
 						/>
 					))}
 				</SliderContainer>
 				<p>{error}</p>
+				<button onClick={() => setHideNumbers(!hideNumbers)}>
+					{hideNumbers ? "Show Numbers" : "Hide Numbers"}
+				</button>
 			</header>
 		</div>
 	);

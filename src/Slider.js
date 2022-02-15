@@ -1,8 +1,10 @@
 import logo from "./logo.svg";
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Slider from "react-input-slider";
 import styled from "styled-components";
+import throttle from "lodash.throttle";
+import debounce from "lodash.debounce";
 
 const SliderDiv = styled.div`
 	display: flex;
@@ -16,6 +18,7 @@ const SliderDiv = styled.div`
 		margin-top: 5rem;
 	}
 `;
+
 function NozieSlider({
 	setTotal,
 	index,
@@ -30,6 +33,7 @@ function NozieSlider({
 	isLockedArray,
 	setLockedSliders,
 	setError,
+	hideNumbers,
 }) {
 	const SliderMap = {
 		0: 100,
@@ -38,29 +42,6 @@ function NozieSlider({
 	};
 
 	const [isLockedAt50, setIsLockedAt50] = useState(true);
-	useEffect(() => {
-		// if (sliderCount === 1 && index === 0) {
-		// 	setSliderValue(100);
-		// } else if (sliderCount === 2) {
-		// 	if (index === 0) {
-		// 		setSliderValue(80);
-		// 	}
-		// 	if (index === 1) {
-		// 		setSliderValue(20);
-		// 	}
-		// } else if (sliderCount === 3) {
-		// 	if (index === 0) {
-		// 		setSliderValue(60);
-		// 	}
-		// 	if (index === 1) {
-		// 		setSliderValue(20);
-		// 	}
-		// 	if (index === 2) {
-		// 		setSliderValue(20);
-		// 	}
-		// }
-	}, [sliderCount]);
-
 	const checkOthersZeroOrLocked = (state) => {
 		let newState = [...state];
 
@@ -90,6 +71,7 @@ function NozieSlider({
 
 		const val = parseInt(e.target.value);
 		const id = e.target.id;
+		console.log(val);
 
 		if (id === "foundation" && val < 50 && isLockedAt50) {
 			return;
@@ -123,9 +105,9 @@ function NozieSlider({
 			const checkOthersLocked = checkOthersAllLocked();
 
 			let applyValueToFirstOnly = false;
-			const totalToDistribute = Math.floor(newDiff / newState.length);
-			const totalToAdjustLast =
-				Math.ceil(newDiff / newState.length) - totalToDistribute;
+			const totalToDistribute = Math.floor(newDiff / (newState.length - 2));
+			let totalToAdjustLast =
+				Math.ceil(newDiff / (newState.length - 2)) - totalToDistribute;
 			if (totalToDistribute === 0) {
 				applyValueToFirstOnly = true;
 			}
@@ -179,21 +161,48 @@ function NozieSlider({
 				) {
 					console.log("NEW DIFF", newDiff, updatedLastAdjusted);
 					if (newDiff < -1) {
-						console.log("Adjustment", newDiff, totalToDistribute);
+						console.log(
+							"Adjustment",
+							newDiff,
+							totalToDistribute,
+							totalToAdjustLast
+						);
+						let skip = false;
 						for (let j = 1; j < newState.length; j++) {
-							console.log("Before: ", newState[j]);
 							if (j === index) continue;
-							newState[j] = newState[j] + Math.abs(totalToDistribute);
+							if (isLockedArray[j]) {
+								skip = true;
+								continue;
+							}
+							console.log("Before: ", newState[j]);
+							newState[j] =
+								newState[j] + Math.abs(totalToDistribute * (skip ? 2 : 1));
 							console.log("After: ", newState[j]);
 						}
+						newState[newState.length - 1] =
+							newState[newState.length - 1] + totalToAdjustLast;
 					} else if (newDiff > 1) {
 						console.log("Adjustment", newDiff, totalToDistribute);
+						let skip = false;
 						for (let j = 1; j < newState.length; j++) {
-							console.log("Before: ", newState[j]);
 							if (j === index) continue;
-							newState[j] = newState[j] - totalToDistribute;
+							if (isLockedArray[j]) {
+								skip = true;
+								continue;
+							}
+							console.log("Before: ", newState[j]);
+							if (newState[j] - totalToDistribute * (skip ? 2 : 1) < 0) {
+								newState[index] +=
+									totalToDistribute * (skip ? 2 : 1) - newState[j];
+								newState[j] = 0;
+							} else {
+								newState[j] = newState[j] - totalToDistribute * (skip ? 2 : 1);
+							}
+
 							console.log("After: ", newState[j]);
 						}
+						newState[newState.length - 1] =
+							newState[newState.length - 1] + totalToAdjustLast;
 					} else if (newDiff === -1) {
 						newState[updatedLastAdjusted] =
 							newState[updatedLastAdjusted] + Math.abs(newDiff);
@@ -218,7 +227,7 @@ function NozieSlider({
 
 	return (
 		<SliderDiv>
-			<h5>{sliderValue}</h5>
+			{!hideNumbers && <h5>{sliderValue}</h5>}
 
 			<input
 				type="range"
