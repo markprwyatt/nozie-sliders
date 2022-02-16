@@ -5,6 +5,8 @@ import Slider from "react-input-slider";
 import styled from "styled-components";
 import throttle from "lodash.throttle";
 import debounce from "lodash.debounce";
+import { difference } from "lodash";
+import { divide } from "lodash";
 
 const SliderDiv = styled.div`
 	display: flex;
@@ -129,81 +131,102 @@ function NozieSlider({
 			}
 
 			console.log("VAL", val);
+			console.log("LAST ADJUSTED > ", lastAdjusted);
+			console.log("INDEX", index);
+			console.log("ISLOCKED ARRAY:", isLockedArray);
 
 			newState[index] = parseInt(val);
 
 			// add to other sliders
 			if (newState.length > 1) {
 				let skipAdjust = 0;
-
-				// skip a slider
-				if (
-					(newState[lastAdjusted] <= 0 && newDiff < 0) ||
-					isLockedArray[lastAdjusted] ||
-					lastAdjusted === index
-				) {
-					console.log(
-						"SKIPPING",
-						(newState[lastAdjusted] <= 0 && newDiff < 0) ||
-							isLockedArray[lastAdjusted] ||
-							lastAdjusted === index
-					);
-					skipAdjust = 1;
-					// setLastAdjusted((prev) => {
-					// 	return prev === newState.length - 1 ? 1 : prev + 1;
-					// });
-				}
-
 				let updatedLastAdjusted = lastAdjusted + skipAdjust;
+				// skip a slider
+				// if (
+				// 	(newState[lastAdjusted] <= 0 && newDiff < 0) ||
+				// 	isLockedArray[lastAdjusted] ||
+				// 	lastAdjusted === index
+				// ) {
+				// 	console.log(
+				// 		newState[lastAdjusted] <= 0 && newDiff < 0,
+				// 		isLockedArray[lastAdjusted],
+				// 		lastAdjusted === index
+				// 	);
+				const directionalCheck = (difference, value) => {
+					if (difference > 0) {
+						return value !== 0;
+					} else {
+						return true;
+					}
+				};
+
+				var offset = lastAdjusted;
+				for (var i = 0; i < newState.length; i++) {
+					var pointer = (i + offset) % newState.length;
+					console.log("POINTER:", pointer);
+					if (
+						pointer !== index &&
+						pointer !== 0 &&
+						directionalCheck(newDiff, newState[pointer]) &&
+						!isLockedArray[pointer]
+					) {
+						console.log(
+							pointer !== index,
+							pointer !== 0,
+							directionalCheck(newDiff, newState[pointer]),
+							isLockedArray[pointer]
+						);
+						updatedLastAdjusted = pointer;
+						break;
+					}
+				}
+				// } else if (
+				// 	(newDiff > 0 && newState[lastAdjusted] >= 100) ||
+				// 	isLockedArray[lastAdjusted] ||
+				// 	lastAdjusted === index
+				// ) {
+				// 	skipAdjust = 1;
+
+				// 	var offset = lastAdjusted;
+				// 	for (var i = 0; i < newState.length; i++) {
+				// 		var pointer = (i + offset) % newState.length;
+				// 		if (
+				// 			pointer !== index &&
+				// 			pointer !== 0 &&
+				// 			(newState[pointer] !== 0 || isLockedArray[pointer])
+				// 		) {
+				// 			console.log(
+				// 				pointer !== index,
+				// 				pointer !== 0,
+				// 				newState[pointer] !== 0,
+				// 				isLockedArray[pointer]
+				// 			);
+				// 			console.log(
+				// 				"POINTER: ",
+				// 				pointer !== 0,
+				// 				newState[pointer],
+				// 				isLockedArray[pointer]
+				// 			);
+				// 			updatedLastAdjusted = pointer;
+
+				// 			break;
+				// 		}
+				// 	}
+				// }
+				// looop over sliders to find next one unlocked
+				// } else if (	(newState[lastAdjusted] >= 100 && newDiff > 0) ||
+				// 	isLockedArray[lastAdjusted] ||
+				// 	lastAdjusted === index) {
+
+				// 	}
+				// if index is last element then set to first
+				console.log("LAST ADJUSTED UPDATED > ", updatedLastAdjusted);
 				if (
 					newState[updatedLastAdjusted] >= 0 &&
 					!isLockedArray[updatedLastAdjusted]
 				) {
 					console.log("NEW DIFF", newDiff, updatedLastAdjusted);
-					if (newDiff < -1) {
-						console.log(
-							"Adjustment",
-							newDiff,
-							totalToDistribute,
-							totalToAdjustLast
-						);
-						let skip = false;
-						for (let j = 1; j < newState.length; j++) {
-							if (j === index) continue;
-							if (isLockedArray[j]) {
-								skip = true;
-								continue;
-							}
-							console.log("Before: ", newState[j]);
-							newState[j] =
-								newState[j] + Math.abs(totalToDistribute * (skip ? 2 : 1));
-							console.log("After: ", newState[j]);
-						}
-						newState[newState.length - 1] =
-							newState[newState.length - 1] + totalToAdjustLast;
-					} else if (newDiff > 1) {
-						console.log("Adjustment", newDiff, totalToDistribute);
-						let skip = false;
-						for (let j = 1; j < newState.length; j++) {
-							if (j === index) continue;
-							if (isLockedArray[j]) {
-								skip = true;
-								continue;
-							}
-							console.log("Before: ", newState[j]);
-							if (newState[j] - totalToDistribute * (skip ? 2 : 1) < 0) {
-								newState[index] +=
-									totalToDistribute * (skip ? 2 : 1) - newState[j];
-								newState[j] = 0;
-							} else {
-								newState[j] = newState[j] - totalToDistribute * (skip ? 2 : 1);
-							}
-
-							console.log("After: ", newState[j]);
-						}
-						newState[newState.length - 1] =
-							newState[newState.length - 1] + totalToAdjustLast;
-					} else if (newDiff === -1) {
+					if (newDiff === -1) {
 						newState[updatedLastAdjusted] =
 							newState[updatedLastAdjusted] + Math.abs(newDiff);
 					} else {
@@ -212,6 +235,7 @@ function NozieSlider({
 					}
 
 					if (newState[updatedLastAdjusted] < 0) {
+						console.log("SET 0");
 						newState[updatedLastAdjusted] = 0;
 					}
 				}

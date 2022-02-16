@@ -86,7 +86,7 @@ function App() {
 							isLocked={lockedSliders[i]}
 							isLockedArray={lockedSliders}
 							setError={setError}
-							hideNumbers
+							hideNumbers={hideNumbers}
 						/>
 					))}
 				</SliderContainer>
