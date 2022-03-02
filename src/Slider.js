@@ -102,6 +102,10 @@ function NozieSlider({
 			let newState = [...state];
 
 			let newDiff = val - newState[index];
+			
+			//NewDiff - the problem here is that if you move this quickly you can create a newDiff that 
+			//is greater than then the total amount available (i.e. 100 - the locked total, it should be capped so
+			//it doesnt go above 100.
 
 			const checkZeroOrLocked = checkOthersZeroOrLocked(newState);
 			const checkOthersLocked = checkOthersAllLocked();
