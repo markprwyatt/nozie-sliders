@@ -90,7 +90,7 @@ function App() {
 						/>
 					))}
 				</SliderContainer>
-				<p>{error}</p>
+				<p> Message : {error}</p>
 				<button onClick={() => setHideNumbers(!hideNumbers)}>
 					{hideNumbers ? "Show Numbers" : "Hide Numbers"}
 				</button>

@@ -71,7 +71,7 @@ function NozieSlider({
 			return;
 		}
 
-		const val = parseInt(e.target.value);
+		let val = parseInt(e.target.value);
 		const id = e.target.id;
 		console.log(val);
 
@@ -102,10 +102,24 @@ function NozieSlider({
 			let newState = [...state];
 
 			let newDiff = val - newState[index];
-			
-			//NewDiff - the problem here is that if you move this quickly you can create a newDiff that 
+
+			const totalWithoutNewDiff =
+				newState.reduce((acc, curr, i) => (i !== index ? acc + curr : acc), 0) +
+				newDiff -
+				100;
+
+			//NewDiff - the problem here is that if you move this quickly you can create a newDiff that
 			//is greater than then the total amount available (i.e. 100 - the locked total, it should be capped so
 			//it doesnt go above 100.
+			if (totalWithoutNewDiff > 0) {
+				newDiff = newDiff - totalWithoutNewDiff;
+				val = val - totalWithoutNewDiff;
+			}
+			console.log(
+				"NEWDIFF VALUE:WITHOUT DIFF >>>>>>>>",
+				newDiff,
+				totalWithoutNewDiff
+			);
 
 			const checkZeroOrLocked = checkOthersZeroOrLocked(newState);
 			const checkOthersLocked = checkOthersAllLocked();
