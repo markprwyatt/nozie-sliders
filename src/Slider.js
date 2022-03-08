@@ -77,6 +77,14 @@ function NozieSlider({
 		return total;
 	};
 
+	const totalNumOfSlidersNotLocked = () => {
+		const tempLocked = [...isLockedArray];
+		tempLocked.splice(index, 1);
+		if (index != 0) tempLocked.shift();
+
+		return tempLocked.filter((slider, i) => !slider).length;
+	};
+
 	const handleOnChange = (e) => {
 		// const totalCurr = slidersArray.reduce((acc, curr, i) => acc + curr, 0);
 
@@ -128,21 +136,27 @@ function NozieSlider({
 				if (totalWithoutNewDiff > calculateTotalOfNonLockedOthers()) {
 					const valToSubtract =
 						totalWithoutNewDiff - calculateTotalOfNonLockedOthers();
-					console.log(
-						"Total Without New Diff IS GREATER THAN Non Locked Total >>"
-					);
+
 					newDiff = newDiff - valToSubtract;
 					val = val - valToSubtract;
+					console.log(
+						"Total Without New Diff IS GREATER THAN Non Locked Total >>",
+						calculateTotalOfNonLockedOthers(),
+						newDiff,
+						val
+					);
 				}
 			}
 
 			const checkZeroOrLocked = checkOthersZeroOrLocked(newState);
 			const checkOthersLocked = checkOthersAllLocked();
-
+			const slidersNotLocked = totalNumOfSlidersNotLocked();
 			let applyValueToFirstOnly = false;
 			const totalToDistribute = Math.floor(newDiff / (newState.length - 2));
 			let totalToAdjustLast =
 				Math.ceil(newDiff / (newState.length - 2)) - totalToDistribute;
+
+			console.log("Njumber of sliders unlocked", slidersNotLocked);
 			if (totalToDistribute === 0) {
 				applyValueToFirstOnly = true;
 			}
@@ -162,11 +176,6 @@ function NozieSlider({
 				}, 3000);
 				return newState;
 			}
-
-			console.log("VAL", val);
-			console.log("LAST ADJUSTED > ", lastAdjusted);
-			console.log("INDEX", index);
-			console.log("ISLOCKED ARRAY:", isLockedArray);
 
 			newState[index] = parseInt(val);
 
@@ -254,6 +263,7 @@ function NozieSlider({
 				// 	}
 				// if index is last element then set to first
 				console.log("LAST ADJUSTED UPDATED > ", updatedLastAdjusted);
+				let remainderToRemove = 0;
 				if (
 					newState[updatedLastAdjusted] >= 0 &&
 					!isLockedArray[updatedLastAdjusted]
@@ -263,8 +273,20 @@ function NozieSlider({
 						newState[updatedLastAdjusted] =
 							newState[updatedLastAdjusted] + Math.abs(newDiff);
 					} else {
-						newState[updatedLastAdjusted] =
-							newState[updatedLastAdjusted] - newDiff;
+						if (newState[updatedLastAdjusted] - newDiff < 0) {
+							newState[updatedLastAdjusted] =
+								newState[updatedLastAdjusted] - newDiff;
+							remainderToRemove += Math.abs(
+								newState[updatedLastAdjusted] - newDiff
+							);
+
+							console.log(totalToDistribute);
+
+							console.log(remainderToRemove);
+						} else {
+							newState[updatedLastAdjusted] =
+								newState[updatedLastAdjusted] - newDiff;
+						}
 					}
 
 					if (newState[updatedLastAdjusted] < 0) {
