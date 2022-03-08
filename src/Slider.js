@@ -74,7 +74,7 @@ function NozieSlider({
 			}
 		}
 
-		return total + val;
+		return total;
 	};
 
 	const handleOnChange = (e) => {
@@ -121,18 +121,22 @@ function NozieSlider({
 				val -
 				100;
 
-			console.log(
-				"calculateTotalOfNonLockedOthers >>>>>>>>",
-				newDiff,
-				calculateTotalOfNonLockedOthers(newDiff - totalWithoutNewDiff)
-			);
+			console.log(" totalWithoutNewDiff>>>>>>>>", totalWithoutNewDiff, newDiff);
 
 			//NewDiff - the problem here is that if you move this quickly you can create a newDiff that
 			//is greater than then the total amount available (i.e. 100 - the locked total, it should be capped so
 			//it doesnt go above 100.
 			if (totalWithoutNewDiff > 0) {
-				newDiff = newDiff - totalWithoutNewDiff;
-				val = val - totalWithoutNewDiff;
+				if (totalWithoutNewDiff > calculateTotalOfNonLockedOthers()) {
+					const valToSubtract =
+						totalWithoutNewDiff - calculateTotalOfNonLockedOthers();
+
+					newDiff = newDiff - valToSubtract;
+					val = val - valToSubtract;
+				} else {
+					newDiff = newDiff - totalWithoutNewDiff;
+					val = val - totalWithoutNewDiff;
+				}
 			}
 			console.log("NEWDIFF VALUE:WITHOUT DIFF >>>>>>>>", newDiff);
 
