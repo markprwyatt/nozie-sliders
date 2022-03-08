@@ -64,6 +64,19 @@ function NozieSlider({
 		return tempLocked.every((slider, i) => slider);
 	};
 
+	const calculateTotalOfNonLockedOthers = (val) => {
+		const tempLocked = [...isLockedArray];
+		const tempSliderValues = [...slidersArray];
+		let total = 0;
+		for (var i = 0; i < tempLocked.length; i++) {
+			if (!tempLocked[i] && i != index) {
+				total += tempSliderValues[i];
+			}
+		}
+
+		return total + val;
+	};
+
 	const handleOnChange = (e) => {
 		// const totalCurr = slidersArray.reduce((acc, curr, i) => acc + curr, 0);
 
@@ -105,8 +118,14 @@ function NozieSlider({
 
 			const totalWithoutNewDiff =
 				newState.reduce((acc, curr, i) => (i !== index ? acc + curr : acc), 0) +
-				newDiff -
+				val -
 				100;
+
+			console.log(
+				"calculateTotalOfNonLockedOthers >>>>>>>>",
+				newDiff,
+				calculateTotalOfNonLockedOthers(newDiff - totalWithoutNewDiff)
+			);
 
 			//NewDiff - the problem here is that if you move this quickly you can create a newDiff that
 			//is greater than then the total amount available (i.e. 100 - the locked total, it should be capped so
@@ -115,11 +134,7 @@ function NozieSlider({
 				newDiff = newDiff - totalWithoutNewDiff;
 				val = val - totalWithoutNewDiff;
 			}
-			console.log(
-				"NEWDIFF VALUE:WITHOUT DIFF >>>>>>>>",
-				newDiff,
-				totalWithoutNewDiff
-			);
+			console.log("NEWDIFF VALUE:WITHOUT DIFF >>>>>>>>", newDiff);
 
 			const checkZeroOrLocked = checkOthersZeroOrLocked(newState);
 			const checkOthersLocked = checkOthersAllLocked();
