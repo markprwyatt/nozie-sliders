@@ -94,7 +94,6 @@ function NozieSlider({
 
 		let val = parseInt(e.target.value);
 		const id = e.target.id;
-		console.log(val);
 
 		if (id === "foundation" && val < 50 && isLockedAt50) {
 			return;
@@ -139,12 +138,6 @@ function NozieSlider({
 
 					newDiff = newDiff - valToSubtract;
 					val = val - valToSubtract;
-					console.log(
-						"Total Without New Diff IS GREATER THAN Non Locked Total >>",
-						calculateTotalOfNonLockedOthers(),
-						newDiff,
-						val
-					);
 				}
 			}
 
@@ -156,7 +149,6 @@ function NozieSlider({
 			let totalToAdjustLast =
 				Math.ceil(newDiff / (newState.length - 2)) - totalToDistribute;
 
-			console.log("Njumber of sliders unlocked", slidersNotLocked);
 			if (totalToDistribute === 0) {
 				applyValueToFirstOnly = true;
 			}
@@ -205,19 +197,12 @@ function NozieSlider({
 				var offset = lastAdjusted;
 				for (var i = 0; i < newState.length; i++) {
 					var pointer = (i + offset) % newState.length;
-					console.log("POINTER:", pointer);
 					if (
 						pointer !== index &&
 						pointer !== 0 &&
 						directionalCheck(newDiff, newState[pointer]) &&
 						!isLockedArray[pointer]
 					) {
-						console.log(
-							pointer !== index,
-							pointer !== 0,
-							directionalCheck(newDiff, newState[pointer]),
-							isLockedArray[pointer]
-						);
 						updatedLastAdjusted = pointer;
 						break;
 					}
@@ -262,13 +247,11 @@ function NozieSlider({
 
 				// 	}
 				// if index is last element then set to first
-				console.log("LAST ADJUSTED UPDATED > ", updatedLastAdjusted);
 				let remainderToRemove = 0;
 				if (
 					newState[updatedLastAdjusted] >= 0 &&
 					!isLockedArray[updatedLastAdjusted]
 				) {
-					console.log("NEW DIFF", newDiff, updatedLastAdjusted);
 					if (newDiff === -1) {
 						newState[updatedLastAdjusted] =
 							newState[updatedLastAdjusted] + Math.abs(newDiff);
@@ -280,9 +263,7 @@ function NozieSlider({
 								newState[updatedLastAdjusted] - newDiff
 							);
 
-							console.log(totalToDistribute);
 
-							console.log(remainderToRemove);
 						} else {
 							newState[updatedLastAdjusted] =
 								newState[updatedLastAdjusted] - newDiff;
@@ -290,8 +271,20 @@ function NozieSlider({
 					}
 
 					if (newState[updatedLastAdjusted] < 0) {
-						console.log("SET 0");
 						newState[updatedLastAdjusted] = 0;
+					}
+				}
+
+
+				let loopIndex = 0
+
+				//While the total is above 100 (only happens due to an error)
+				while (newState.reduce((partialSum, a) => partialSum + a, 0) - 100 > 0) {
+					//Make sure it doesn't change the user changed slider, make sure that the value isn't already zero and make sure it's not locked.
+					if (loopIndex !== index && newState[loopIndex] > 0 && !isLockedArray[loopIndex]) {
+						newState[loopIndex] = newState[loopIndex] - 1
+					} else {
+						loopIndex++
 					}
 				}
 
