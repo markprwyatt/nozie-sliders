@@ -71,6 +71,7 @@ const SliderButton = ({
 		console.log(sliderToRemove);
 		setSliderValue((state) => {
 			let loopIndex = 0;
+			let loopCount = 0;
 			let newState = [...state.slice(0, state.length - 1)];
 			//While the total is above 100 (only happens due to an error)
 			while (sliderToRemove > 0) {
@@ -93,6 +94,8 @@ const SliderButton = ({
 						loopIndex = 0;
 					}
 				}
+				loopCount++;
+				if (loopCount === 100) break;
 			}
 			console.warn(newState);
 			return newState;

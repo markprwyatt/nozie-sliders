@@ -2,7 +2,7 @@ import logo from "./logo.svg";
 import "./App.css";
 import { useState, useEffect, useCallback } from "react";
 import Slider from "react-input-slider";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import throttle from "lodash.throttle";
 import debounce from "lodash.debounce";
 import { difference } from "lodash";
@@ -10,14 +10,50 @@ import { divide } from "lodash";
 
 const SliderDiv = styled.div`
 	display: flex;
-	flex-direction: column;
+
+	${(props) =>
+		props.isStandardLayout
+			? css`
+					flex-direction: column;
+			  `
+			: css`
+					align-items: center;
+					position: relative;
+					margin-bottom: 3rem;
+			  `}
 
 	h5 {
-		margin-bottom: 6rem;
+		${(props) =>
+			props.isStandardLayout
+				? css`
+						margin-bottom: 6rem;
+				  `
+				: css`
+						position: absolute;
+						left: -30px;
+				  `}
 	}
 
-	button {
-		margin-top: 5rem;
+	button:first-of-type {
+		${(props) =>
+			props.isStandardLayout
+				? css`
+						margin-top: 5rem;
+				  `
+				: css`
+						position: absolute;
+						left: -100px;
+				  `}
+	}
+
+	button:nth-of-type(2) {
+		${(props) =>
+			props.isStandardLayout
+				? css``
+				: css`
+						position: absolute;
+						left: -230px;
+				  `}
 	}
 `;
 
@@ -36,6 +72,7 @@ function NozieSlider({
 	setLockedSliders,
 	setError,
 	hideNumbers,
+	isStandardLayout,
 }) {
 	const SliderMap = {
 		0: 100,
@@ -135,7 +172,7 @@ function NozieSlider({
 				if (totalWithoutNewDiff > calculateTotalOfNonLockedOthers()) {
 					const valToSubtract =
 						totalWithoutNewDiff - calculateTotalOfNonLockedOthers();
-
+					console.log("Subtract", valToSubtract);
 					newDiff = newDiff - valToSubtract;
 					val = val - valToSubtract;
 				}
@@ -262,8 +299,6 @@ function NozieSlider({
 							remainderToRemove += Math.abs(
 								newState[updatedLastAdjusted] - newDiff
 							);
-
-
 						} else {
 							newState[updatedLastAdjusted] =
 								newState[updatedLastAdjusted] - newDiff;
@@ -275,17 +310,25 @@ function NozieSlider({
 					}
 				}
 
-
-				let loopIndex = 0
-
+				let loopIndex = 0;
+				let loopCount = 0;
 				//While the total is above 100 (only happens due to an error)
-				while (newState.reduce((partialSum, a) => partialSum + a, 0) - 100 > 0) {
+				while (
+					newState.reduce((partialSum, a) => partialSum + a, 0) - 100 >
+					0
+				) {
 					//Make sure it doesn't change the user changed slider, make sure that the value isn't already zero and make sure it's not locked.
-					if (loopIndex !== index && newState[loopIndex] > 0 && !isLockedArray[loopIndex]) {
-						newState[loopIndex] = newState[loopIndex] - 1
+					if (
+						loopIndex !== index &&
+						newState[loopIndex] > 0 &&
+						!isLockedArray[loopIndex]
+					) {
+						newState[loopIndex] = newState[loopIndex] - 1;
 					} else {
-						loopIndex++
+						loopIndex++;
 					}
+					loopCount++;
+					if (loopCount === 100) break;
 				}
 
 				setLastAdjusted((prev) => {
@@ -298,7 +341,7 @@ function NozieSlider({
 	};
 
 	return (
-		<SliderDiv>
+		<SliderDiv isStandardLayout={isStandardLayout}>
 			{!hideNumbers && <h5>{sliderValue}</h5>}
 
 			<input

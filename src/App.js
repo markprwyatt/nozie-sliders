@@ -3,21 +3,35 @@ import "./App.css";
 import { useState, useEffect } from "react";
 import Slider from "./Slider";
 import SliderButton from "./SliderButton";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 const SliderContainer = styled.div`
 	display: flex;
 	height: 500px;
 	padding-top: 100px;
+	${(props) =>
+		!props.isStandardLayout &&
+		css`
+			flex-direction: column;
+		`}
 
 	input {
 		display: block;
-		transform: rotate(270deg);
+		${(props) =>
+			props.isStandardLayout &&
+			css`
+				transform: rotate(270deg);
+			`}
 	}
+`;
+
+const ButtonHolder = styled.div`
+	display: flex;
 `;
 
 function App() {
 	const [total, setTotal] = useState(100);
+	const [isStandardLayout, setIsStandardLayout] = useState(true);
 	const [error, setError] = useState("");
 	const [lastAdjusted, setLastAdjusted] = useState(1);
 	const [sliderValue, setSliderValue] = useState([100]);
@@ -39,7 +53,7 @@ function App() {
 	// }, [sliderValue.length]);
 
 	return (
-		<div className="App">
+		<div className={`App  ${!isStandardLayout ? "horizontal-layout" : ""}`}>
 			<header className="App-header">
 				<div>
 					<SliderButton
@@ -71,7 +85,7 @@ function App() {
 						isLockedArray={lockedSliders}
 					/>
 				</div>
-				<SliderContainer>
+				<SliderContainer isStandardLayout={isStandardLayout}>
 					{sliderValue.map((slider, i) => (
 						<Slider
 							key={i}
@@ -89,14 +103,20 @@ function App() {
 							isLockedArray={lockedSliders}
 							setError={setError}
 							hideNumbers={hideNumbers}
+							isStandardLayout={isStandardLayout}
 						/>
 					))}
 				</SliderContainer>
 				<p> Message : {error}</p>
 				{sliderValue.length > 4 && <p>This many blends may get funky</p>}
-				<button onClick={() => setHideNumbers(!hideNumbers)}>
-					{hideNumbers ? "Show Numbers" : "Hide Numbers"}
-				</button>
+				<ButtonHolder>
+					<button onClick={() => setHideNumbers(!hideNumbers)}>
+						{hideNumbers ? "Show Numbers" : "Hide Numbers"}
+					</button>
+					<button onClick={() => setIsStandardLayout(!isStandardLayout)}>
+						Change Layout
+					</button>
+				</ButtonHolder>
 			</header>
 		</div>
 	);
