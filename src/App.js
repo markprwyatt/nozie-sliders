@@ -29,14 +29,14 @@ function App() {
 		setTotal(newTotal);
 	}, [sliderValue]);
 
-	useEffect(() => {
-		if (sliderValue.length > 4) {
-			setError("This many blends may get funky");
-			setTimeout(() => {
-				setError("");
-			}, 5000);
-		}
-	}, [sliderValue.length]);
+	// useEffect(() => {
+	// 	if (sliderValue.length > 4) {
+	// 		setError("This many blends may get funky");
+	// 		setTimeout(() => {
+	// 			setError("");
+	// 		}, 5000);
+	// 	}
+	// }, [sliderValue.length]);
 
 	return (
 		<div className="App">
@@ -45,13 +45,14 @@ function App() {
 					<SliderButton
 						text="Remove Button"
 						setError={setError}
-						setSliderCount={setSliderValue}
+						setSliderValue={setSliderValue}
 						sliderCount={sliderValue.length}
 						sliderValue={sliderValue}
 						total={total}
 						setTotal={setTotal}
 						setLockedSliders={setLockedSliders}
 						setLastAdjusted={setLastAdjusted}
+						isLockedArray={lockedSliders}
 					/>
 					<h1>Nozie Sliders</h1>
 					{!hideNumbers && <h2> {total}</h2>}
@@ -59,7 +60,7 @@ function App() {
 					<SliderButton
 						text="Add Button"
 						setError={setError}
-						setSliderCount={setSliderValue}
+						setSliderValue={setSliderValue}
 						sliderCount={sliderValue.length}
 						isIncrement
 						sliderValue={sliderValue}
@@ -67,6 +68,7 @@ function App() {
 						setTotal={setTotal}
 						setLockedSliders={setLockedSliders}
 						setLastAdjusted={setLastAdjusted}
+						isLockedArray={lockedSliders}
 					/>
 				</div>
 				<SliderContainer>
@@ -91,6 +93,7 @@ function App() {
 					))}
 				</SliderContainer>
 				<p> Message : {error}</p>
+				{sliderValue.length > 4 && <p>This many blends may get funky</p>}
 				<button onClick={() => setHideNumbers(!hideNumbers)}>
 					{hideNumbers ? "Show Numbers" : "Hide Numbers"}
 				</button>

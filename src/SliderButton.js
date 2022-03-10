@@ -2,7 +2,6 @@ import React from "react";
 
 const SliderButton = ({
 	setError,
-	setSliderCount,
 	sliderCount,
 	text,
 	isIncrement,
@@ -10,6 +9,8 @@ const SliderButton = ({
 	setTotal,
 	setLockedSliders,
 	setLastAdjusted,
+	setSliderValue,
+	isLockedArray,
 }) => {
 	const setNewSliderValue = () => {
 		const valueMap = {
@@ -33,7 +34,7 @@ const SliderButton = ({
 		const totalToDistribute = Math.floor(foundationBlend / sliderCount);
 		const totalToAddToFoundation = foundationBlend % sliderCount;
 
-		setSliderCount((state) => {
+		setSliderValue((state) => {
 			return [
 				...state.map((slider, i) => {
 					if (i === 0) return foundationBlend + totalToAddToFoundation;
@@ -51,13 +52,13 @@ const SliderButton = ({
 			const tempValue = sliderValue;
 			tempValue[0] = tempValue[0] - setNewSliderValue();
 			const newState = [...tempValue, setNewSliderValue()];
-			setSliderCount(newState);
+			setSliderValue(newState);
 			setLockedSliders((state) => [...state, false]);
 			setLastAdjusted(1);
 			return;
 		}
 
-		setSliderCount((state) =>
+		setSliderValue((state) =>
 			isIncrement ? [...state, 0] : [...state.slice(0, state.length - 1)]
 		);
 		setNewSliderValue();
@@ -67,8 +68,38 @@ const SliderButton = ({
 
 	const onRemoveSlider = () => {
 		let sliderToRemove = sliderValue[sliderValue.length - 1];
-		setSliderCount((state) => [...state.slice(0, state.length - 1)]);
-		setTotal((state) => state - sliderToRemove);
+		console.log(sliderToRemove);
+		setSliderValue((state) => {
+			let loopIndex = 0;
+			let newState = [...state.slice(0, state.length - 1)];
+			//While the total is above 100 (only happens due to an error)
+			while (sliderToRemove > 0) {
+				if (isLockedArray.every((slider) => slider)) {
+					break;
+				}
+
+				//Make sure it doesn't change the user changed slider, make sure that the value isn't already zero and make sure it's not locked.
+				if (newState[loopIndex] > 0 && !isLockedArray[loopIndex]) {
+					newState[loopIndex] = newState[loopIndex] + 1;
+					sliderToRemove -= 1;
+					console.log("adding", newState[loopIndex], sliderToRemove);
+					loopIndex++;
+					if (loopIndex > newState.length - 1) {
+						loopIndex = 0;
+					}
+				} else {
+					loopIndex++;
+					if (loopIndex > newState.length - 1) {
+						loopIndex = 0;
+					}
+				}
+			}
+			console.warn(newState);
+			return newState;
+		});
+
+		// setSliderValue((state) => [...state.slice(0, state.length - 1)]);
+		// setTotal((state) => state - sliderToRemove);
 		setLastAdjusted(1);
 	};
 	return (
