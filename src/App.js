@@ -7,13 +7,16 @@ import styled, { css } from "styled-components";
 
 const SliderContainer = styled.div`
 	display: flex;
-	height: 500px;
+
 	padding-top: 100px;
 	${(props) =>
-		!props.isStandardLayout &&
-		css`
-			flex-direction: column;
-		`}
+		!props.isStandardLayout
+			? css`
+					flex-direction: column;
+			  `
+			: css`
+					height: 500px;
+			  `}
 
 	input {
 		display: block;
